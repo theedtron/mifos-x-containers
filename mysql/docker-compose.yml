@@ -25,6 +25,7 @@ services:
     volumes:
       - ./fineract-db/server_collation.cnf:/etc/mysql/conf.d/server_collation.cnf
       - ./fineract-db/docker:/docker-entrypoint-initdb.d:Z,ro
+      - dbdata:/var/lib/mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: skdcnwauicn2ucnaecasdsajdnizucawencascdca
@@ -44,8 +45,7 @@ services:
     ports:
       - 8443:8443
     depends_on:
-      fineractmysql:
-        condition: service_healthy
+      - fineractmysql
     environment:
       # TODO: env vars prefixed with "fineract_tenants_*" will be removed with one of the next releases
       #- fineract_tenants_driver=org.mariadb.jdbc.Driver
@@ -88,19 +88,26 @@ services:
       - FINERACT_DEFAULT_TENANTDB_IDENTIFIER=default
       - FINERACT_DEFAULT_TENANTDB_NAME=fineract_default
       - FINERACT_DEFAULT_TENANTDB_DESCRIPTION=Default Demo Tenant
+      - FINERACT_PENTAHO_REPORTS_PATH=/app/pentahoReports
       - JAVA_TOOL_OPTIONS="-Xmx1G"
+    volumes:
+      - ./reports/pentahoReports/:/app/pentahoReports/
+      - ./reports/libs/:/app/plugins/
   mifosx-web-app:
     image: fintecheando/web-app:master
     ports:
       - '4200:80'
     environment:
-      - FINERACT_API_URLS=https://localhost:8443
-      - FINERACT_API_URL=https://localhost:8443
+      - FINERACT_API_URLS=https://46.101.147.69:8443
+      - FINERACT_API_URL=https://46.101.147.69:8443
       - FINERACT_API_PROVIDER=/fineract-provider/api
       - FINERACT_API_VERSION=/v1
       - FINERACT_PLATFORM_TENANT_IDENTIFIER=default
       - MIFOS_DEFAULT_LANGUAGE=en-US
       - MIFOS_SUPPORTED_LANGUAGES=en-US,fr-FR
     depends_on:
-      fineract-server:
-        condition: service_healthy
+      - fineract-server
+#Volumes
+volumes:
+  dbdata:
+    driver: local
